@@ -1,0 +1,185 @@
+# Embeddable Widget & Lead-Capture Platform
+
+FlyRank Internship · Backend Track · Capstone
+
+Let a customer define a widget, hand them one line of `<script>`, and
+safely catch everything the public internet throws back at it — validated,
+spam-filtered, enriched, and dashboarded.
+
+See [`docs/DESIGN.md`](docs/DESIGN.md) for the one-page design doc (data
+model, API surface, layer sketch, explicit non-goal) written before this
+was built, and [`BUILDLOG.md`](BUILDLOG.md) for an honest account of where
+AI assistance was used.
+
+## Architecture
+
+```
+Widget Owner (authenticated, JWT)
+  → Widget Management API  →  widgets table (tenant-isolated)  →  embed snippet
+
+Customer Website (any origin)
+  <script src="widget.v1.js?id=123">
+  → GET /api/public/widgets/:id/config   (public · cached 60s · CORS: *)
+  → renders the widget in the page
+
+Website Visitor
+  → POST /api/public/submissions          (public · CORS: *)
+    1. Idempotency-Key replay check       → returns cached response if seen
+    2. Schema validation (Zod)            → bad payload? clean 4xx, never 500
+    3. Rate limit (per-IP, per-widget)    → flood? 429, service stays up
+    4. Honeypot spam check                → bot? fake 200, nothing stored
+    5. Geo enrichment: Provider A -(fail)-> Provider B -(fail)-> store anyway
+    6. Store submission
+    7. Enqueue confirmation email          → off the request path, retries,
+                                              failure logged to failed_jobs,
+                                              NEVER blocks the response above
+
+Widget Owner (authenticated)
+  → Dashboard API  ←—  submissions + stats (tenant-isolated)
+```
+
+## Tech stack
+
+| Concern | Choice |
+|---|---|
+| Runtime | Node.js 20 + Express |
+| Database | PostgreSQL (Docker) or SQLite (zero-setup quick start) — same code, via Knex |
+| Auth | JWT (bcrypt-hashed passwords) |
+| Validation | Zod |
+| Rate limiting | express-rate-limit (per-IP) + a small custom sliding window (per-widget) |
+| Background jobs | A minimal in-process queue with retries + a `failed_jobs` audit table |
+| Tests | Jest + Supertest, 23 tests across 7 suites |
+
+## Quick start (no Docker — SQLite)
+
+```bash
+npm install
+npm run migrate
+npm run seed        # prints a demo login + a ready-to-use widget id
+npm run dev          # API on http://localhost:3000
+```
+
+In a second terminal, serve the plain-HTML "customer site" on a **different
+origin** (a different port counts):
+
+```bash
+npm run test-site    # serves test-site/ on http://localhost:5500
+```
+
+Open `http://localhost:5500/index.html?widgetId=<the-uuid-from-seed-output>`
+— that page is on port 5500, the API is on port 3000, so the widget it
+loads is a genuine cross-origin request, exactly like a real customer's
+site would make.
+
+## Full stack (Docker + Postgres)
+
+```bash
+docker compose up --build
+docker compose exec app npm run seed
+```
+
+The API is on `http://localhost:3000`; Postgres is exposed on `:5432` for
+inspection. Migrations run automatically on container startup.
+
+## Running the tests
+
+```bash
+npm test
+```
+
+23 tests covering validation/4xx handling, the honeypot, per-IP and
+per-widget rate limiting, the full geo-provider fallback chain (deterministic
+via `GEO_MODE=mock`), multi-tenant isolation, idempotency, and the
+"email side effect fails but the submission still succeeds" resilience
+requirement (including the `failed_jobs` alert record).
+
+## Environment variables
+
+See [`.env.example`](.env.example) for the full list with explanations.
+Two worth calling out for manual testing / grading:
+
+- `GEO_MODE=mock` (default) uses deterministic in-process fake geo
+  providers, toggled with `FORCE_PROVIDER_A_DOWN` / `FORCE_PROVIDER_B_DOWN`,
+  so the fallback chain can be proven without depending on the public
+  internet or the two free providers' uptime. Set `GEO_MODE=live` to hit
+  the real APIs (`ip-api.com`, then `ipapi.co`) during manual dev.
+- `FORCE_EMAIL_FAILURE=true` deterministically fails the confirmation-email
+  side effect on every attempt, to prove it never blocks the submission
+  response (and that it gets logged to `failed_jobs` once retries are
+  exhausted).
+
+## API reference
+
+All authenticated routes expect `Authorization: Bearer <token>` from
+`/api/auth/login` or `/api/auth/register`.
+
+### Auth
+
+| Method | Path | Auth | Body |
+|---|---|---|---|
+| POST | `/api/auth/register` | none | `{ name, email, password }` |
+| POST | `/api/auth/login` | none | `{ email, password }` |
+
+Both return `{ tenant: { id, name, email }, token }`.
+
+### Widget management (tenant-isolated)
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/api/widgets` | Bearer | `{ type, title, description?, fields[], buttonText?, displayOptions? }` |
+| GET | `/api/widgets` | Bearer | list the tenant's own widgets |
+| GET | `/api/widgets/:id` | Bearer | 404 if it belongs to another tenant |
+| PUT | `/api/widgets/:id` | Bearer | partial update; bumps `version` |
+| DELETE | `/api/widgets/:id` | Bearer | 204 on success |
+| GET | `/api/widgets/:id/embed-snippet` | Bearer | `{ snippet: "<script ...>" }` |
+
+`field` shape: `{ name, label, type: "text"|"email"|"textarea"|"checkbox", required }`.
+
+### Widget delivery (public)
+
+| Method | Path | Cache |
+|---|---|---|
+| GET | `/widget.v1.js` | `public, max-age=31536000, immutable` |
+| GET | `/api/public/widgets/:id/config` | `public, max-age=60` + `ETag` |
+
+### Public submission
+
+`POST /api/public/submissions`
+
+```json
+{ "widgetId": "...", "data": { "email": "a@b.com" }, "website": "" }
+```
+
+`website` is the honeypot field — leave it empty (the rendered widget hides
+it from real users with CSS). Optional `Idempotency-Key` header dedupes
+retried submissions. Responses:
+
+- `201` — `{ status: "ok", submissionId, enriched: boolean }`
+- `200` — `{ status: "ok" }` when the honeypot was triggered (nothing stored)
+- `400` — validation failure or malformed JSON
+- `404` — unknown `widgetId`
+- `413` — payload too large
+- `429` — rate limited (per-IP or per-widget)
+
+### Dashboard (tenant-isolated)
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/api/dashboard/overview` | total + today's submission counts, per-widget counts |
+| GET | `/api/dashboard/widgets/:id/stats` | daily counts (30d) + country breakdown |
+| GET | `/api/dashboard/submissions?widgetId=&page=&pageSize=` | paginated submissions |
+
+## Limitations (honest, on purpose)
+
+- The rate limiter and background job queue are in-process — see the
+  explicit non-goal in `docs/DESIGN.md` for why, and what a real
+  multi-instance deployment would need instead (Redis-backed store, a real
+  queue).
+- Email/webhook delivery is simulated (logged to the console), per the
+  brief's realistic-scope guidance — what's exercised and tested is the
+  failure-isolation behavior, not real SMTP delivery.
+- The widget UI is intentionally minimal styling, per Section 7 of the
+  brief ("the grade lives in the backend, not the CSS").
+- Live geo lookups (`GEO_MODE=live`) depend on two free third-party APIs'
+  uptime and rate limits; `GEO_MODE=mock` (the default) is what the
+  automated tests and the deterministic fallback-chain proof use.

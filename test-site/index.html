@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!--
+  This page plays the role of "a customer's website" for local testing.
+  Served from a different origin/port than the API (see README "Quick
+  start" — `npm run test-site` serves this on :5500 while the API runs on
+  :3000), so any submission made here genuinely exercises CORS, exactly
+  like the brief requires: "the widget renders on a page served from a
+  different origin than your API."
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Acme Co. — a totally unrelated customer website</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #222; }
+    header { border-bottom: 1px solid #eee; padding-bottom: 16px; margin-bottom: 24px; }
+    .note { background: #f6f6f6; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #444; }
+    code { background: #eee; padding: 1px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Acme Co.</h1>
+    <p>We sell things. This has nothing to do with the widget platform — except for the one script tag below.</p>
+  </header>
+
+  <p>Sign up for updates from "Acme Co.":</p>
+
+  <!--
+    ==========================================================================
+    THIS is the embed snippet — the one line a real customer pastes into
+    their site. Everything below it (the <div id="flyrank-widget-...">) is
+    injected automatically by widget.v1.js; you don't write it by hand.
+
+    Replace WIDGET_ID_HERE with the id printed by `npm run seed`
+    (or by creating a widget through the API / dashboard yourself).
+    For convenience, this page also accepts ?widgetId=<id> in its own URL
+    and will use that instead — so you can open, e.g.:
+      http://localhost:5500/index.html?widgetId=<the-uuid-from-seed-output>
+    without hand-editing this file.
+    ==========================================================================
+  -->
+  <script>
+    (function pickWidgetId() {
+      var params = new URLSearchParams(window.location.search);
+      var fromUrl = params.get('widgetId');
+      var widgetId = fromUrl || 'WIDGET_ID_HERE';
+      var apiOrigin = params.get('apiOrigin') || 'http://localhost:3000';
+
+      document.write(
+        '<scr' + 'ipt src="' + apiOrigin + '/widget.v1.js?id=' + widgetId + '" async></scr' + 'ipt>'
+      );
+    })();
+  </script>
+
+  <p class="note">
+    Open this page with <code>?widgetId=&lt;uuid&gt;</code> in the URL (see the console output of
+    <code>npm run seed</code> for a ready-made one), or edit the placeholder above directly.
+    Serve this file with <code>npm run test-site</code> — it must be a <em>different origin</em> from the
+    API (a different port counts) for the CORS behaviour to actually be exercised.
+  </p>
+</body>
+</html>

@@ -1,0 +1,61 @@
+name: widgetplatform
+description: Embeddable Widget & Lead-Capture Platform — FlyRank Backend Track Capstone
+
+run: docker compose up --build
+seed: docker compose exec app npm run seed
+test: npm test
+base_url: http://localhost:3000
+
+endpoints:
+  - method: GET
+    path: /health
+    auth: none
+  - method: POST
+    path: /api/auth/register
+    auth: none
+  - method: POST
+    path: /api/auth/login
+    auth: none
+  - method: POST
+    path: /api/widgets
+    auth: bearer
+  - method: GET
+    path: /api/widgets
+    auth: bearer
+  - method: GET
+    path: /api/widgets/:id
+    auth: bearer
+  - method: PUT
+    path: /api/widgets/:id
+    auth: bearer
+  - method: DELETE
+    path: /api/widgets/:id
+    auth: bearer
+  - method: GET
+    path: /api/widgets/:id/embed-snippet
+    auth: bearer
+  - method: GET
+    path: /widget.v1.js
+    auth: none
+  - method: GET
+    path: /api/public/widgets/:id/config
+    auth: none
+  - method: POST
+    path: /api/public/submissions
+    auth: none
+  - method: GET
+    path: /api/dashboard/overview
+    auth: bearer
+  - method: GET
+    path: /api/dashboard/widgets/:id/stats
+    auth: bearer
+  - method: GET
+    path: /api/dashboard/submissions
+    auth: bearer
+
+# Quick alternative to the Docker path for a fast local look (no Docker
+# required): `npm install && npm run migrate && npm run seed && npm run dev`,
+# with DB_CLIENT=sqlite3 (the default — see .env.example).
+quick_start:
+  run: npm run dev
+  seed: npm run seed
