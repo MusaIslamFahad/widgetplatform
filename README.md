@@ -1,6 +1,23 @@
+<div align="center">
+  
 # Embeddable Widget & Lead-Capture Platform
 
-FlyRank Internship · Backend Track · Capstone
+![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=flat&logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat&logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-supported-003B57?style=flat&logo=sqlite&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat&logo=docker&logoColor=white)
+![Tested with Jest](https://img.shields.io/badge/tested%20with-Jest-C21325?style=flat&logo=jest&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)
+
+![GitHub last commit](https://img.shields.io/github/last-commit/MusaIslamFahad/flyrank-capstone-widgetplatform)
+![GitHub repo size](https://img.shields.io/github/repo-size/MusaIslamFahad/flyrank-capstone-widgetplatform)
+![GitHub stars](https://img.shields.io/github/stars/MusaIslamFahad/flyrank-capstone-widgetplatform?style=social)
+
+### FlyRank Internship · Backend Track · Capstone
+
+</div>
 
 Let a customer define a widget, hand them one line of `<script>`, and
 safely catch everything the public internet throws back at it — validated,
