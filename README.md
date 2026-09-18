@@ -10,23 +10,24 @@
 ![Tested with Jest](https://img.shields.io/badge/tested%20with-Jest-C21325?style=flat&logo=jest&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)
-
 ![GitHub last commit](https://img.shields.io/github/last-commit/MusaIslamFahad/flyrank-capstone-widgetplatform)
 ![GitHub repo size](https://img.shields.io/github/repo-size/MusaIslamFahad/flyrank-capstone-widgetplatform)
 ![GitHub stars](https://img.shields.io/github/stars/MusaIslamFahad/flyrank-capstone-widgetplatform?style=social)
 
 ### FlyRank Internship · Backend Track · Capstone
 
-</div>
+**Let a customer define a widget, hand them one line of `<script>`, and
+safely catch everything the public internet throws back at it validated,
+spam-filtered, enriched, and dashboarded.**
 
-Let a customer define a widget, hand them one line of `<script>`, and
-safely catch everything the public internet throws back at it — validated,
-spam-filtered, enriched, and dashboarded.
+<br/>
 
-See [`docs/DESIGN.md`](docs/DESIGN.md) for the one-page design doc (data
+> See [`docs/DESIGN.md`](docs/DESIGN.md) for the one-page design doc (data
 model, API surface, layer sketch, explicit non-goal) written before this
 was built, and [`BUILDLOG.md`](BUILDLOG.md) for an honest account of where
 AI assistance was used.
+
+</div>
 
 ## Architecture
 
