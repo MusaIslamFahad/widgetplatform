@@ -183,3 +183,49 @@ retried submissions. Responses:
 - Live geo lookups (`GEO_MODE=live`) depend on two free third-party APIs'
   uptime and rate limits; `GEO_MODE=mock` (the default) is what the
   automated tests and the deterministic fallback-chain proof use.
+
+## 🤝 Contributing
+
+Contributions are welcome! If you'd like to improve the project:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'Add some feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+**Ideas for contributions:** a Redis-backed rate limiter and a real job queue (BullMQ/SQS) for multi-instance deployments, additional geo-enrichment providers beyond ip-api.com/ipapi.co, a lightweight admin UI on top of the dashboard API (currently JSON-only by design), webhook signing/HMAC verification for the confirmation side effect, CAPTCHA or proof-of-work as a stronger bot-defense layer, or a real-time dashboard via WebSockets/SSE.
+
+---
+
+## 👤 Author
+
+**Md. Musa Islam Fahad**  
+CSE (Data Science) · Daffodil International University, Dhaka  
+📧 musa.islam.fahad@gmail.com  
+🌐 [Portfolio](https://musaislamfahad.vercel.app) · [GitHub](https://github.com/MusaIslamFahad) · [LinkedIn](https://linkedin.com/in/md-musa-islam-fahad-b18759249)
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see [LICENSE](LICENSE) for details.  
+Free to use, modify, and deploy.
+
+---
+
+## 🙏 Acknowledgements
+
+- [Express](https://expressjs.com) - The web framework this API is built on
+- [Knex.js](https://knexjs.org) - SQL query builder powering the SQLite/Postgres dual-database layer
+- [ip-api.com](https://ip-api.com) & [ipapi.co](https://ipapi.co) - Free geolocation APIs used in the enrichment fallback chain
+
+---
+
+<div align="center">
+
+Built as a FlyRank AI Backend Track capstone - a hardened, multi-tenant embeddable widget platform.
+
+**[⬆ Back to Top](#embeddable-widget--lead-capture-platform)**
+
+</div>
